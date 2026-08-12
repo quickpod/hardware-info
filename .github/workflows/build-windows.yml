@@ -20,8 +20,10 @@ jobs:
           pyinstaller --onefile --windowed --name HardwareInfo
           --icon hardware-info.ico
           --version-file packaging/version.txt
+          --hidden-import hwinfo.__main__
           --add-data "hardware-info.ico;."
           --collect-submodules psutil
+          --collect-all customtkinter
           hardware_info_app.py
       - name: Stage installer inputs
         shell: pwsh
@@ -41,4 +43,10 @@ jobs:
           path: |
             dist/HardwareInfo.exe
             packaging/dist/HardwareInfo-Setup.exe
+          if-no-files-found: error
+      - name: Upload staging (for signed repack)
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardware-info-staging
+          path: packaging/staging
           if-no-files-found: error

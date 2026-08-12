@@ -1,2 +1,4 @@
 # HardwareInfo runtime deps — permissive/weak-copyleft only, no AGPL/proprietary.
 psutil>=5.9
+customtkinter>=5.2
+darkdetect>=0.8

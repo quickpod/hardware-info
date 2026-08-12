@@ -1,8 +1,9 @@
 ; Inno Setup — HardwareInfo. Signed single-file installer, compiled in CI.
 #define AppName "HardwareInfo"
-#define AppVersion "1.0.2"
+#define AppVersion "1.0.3"
 
 [Setup]
+AppMutex=QuickOpen.HardwareInfo
 AppId={{51A0F001-0009-4E5B-8C71-9B0E2F3A0009}
 AppName={#AppName}
 AppVersion={#AppVersion}
@@ -23,7 +24,7 @@ WizardSmallImageFile=branding\wizard-small.bmp
 AppCopyright=Apache-2.0. 100%% AI-built, published on QuickOpen (quickopen.ai).
 VersionInfoCompany=QuickOpen
 VersionInfoProductName=HardwareInfo
-VersionInfoVersion=1.0.2.0
+VersionInfoVersion=1.0.3.0
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesInstallIn64BitMode=x64compatible
