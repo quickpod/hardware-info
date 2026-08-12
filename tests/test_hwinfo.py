@@ -187,10 +187,13 @@ def test_export_bad_format_raises_hwinfoerror(tmp_path):
         export(str(tmp_path / "x.csv"), fmt="csv")
 
 
-def test_export_unwritable_path_raises_hwinfoerror():
-    # A path under a non-existent, un-creatable location -> clean HWInfoError.
+def test_export_unwritable_path_raises_hwinfoerror(tmp_path):
+    # Treat an existing *file* as a parent directory: creating a child under it
+    # is refused by the OS on both POSIX and Windows -> clean HWInfoError.
+    blocker = tmp_path / "blocker"
+    blocker.write_text("x")
     with pytest.raises(HWInfoError):
-        export("/proc/this/cannot/exist/report.json", fmt="json")
+        export(str(blocker / "report.json"), fmt="json")
 
 
 def test_export_empty_path_raises_hwinfoerror():
