@@ -1,0 +1,13 @@
+{
+  "slug": "hardware-info",
+  "name": "HardwareInfo",
+  "tagline": "Full system & hardware inventory with live sensors and SMART disk health.",
+  "categorySlug": "drivers-hardware",
+  "license": "Apache-2.0",
+  "description": "A detailed system inventory: CPU, memory, motherboard, GPU, storage and network hardware; live sensors (CPU/temps, fan, load), per-core usage, battery health, and SMART disk status where available. Export a full report. A CPU-Z/HWiNFO-style tool, fully open source.",
+  "aiStack": "Python (tkinter + CLI), psutil",
+  "platforms": [
+    "windows"
+  ],
+  "buildEntry": "hardware_info_app.py"
+}

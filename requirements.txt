@@ -1,0 +1,2 @@
+# HardwareInfo runtime deps — permissive/weak-copyleft only, no AGPL/proprietary.
+psutil>=5.9
