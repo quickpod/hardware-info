@@ -188,7 +188,6 @@ def build_app():
         def __init__(self, master, app, caption="", width=260):
             super().__init__(master, style="TFrame")
             self.app = app
-            self._w = width
             self.cap = ttk.Label(self, text=caption, style="Mono.TLabel", width=14,
                                  anchor="w")
             self.cap.pack(side="left")
