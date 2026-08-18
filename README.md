@@ -26,7 +26,7 @@ python -m hwinfo --help    # CLI
 - **Overview** — OS, hostname, uptime/boot time, machine & architecture, Python runtime.
 - **CPU** — model, physical/logical core counts, base/current/max frequency, live per-core utilisation bars, and low-level stats.
 - **Memory** — physical RAM and swap, with usage meters and human-readable sizes.
-- **Disks** — partitions, filesystems, capacity/usage, and aggregate IO counters. SMART disk health is shown when `smartctl` + `pySMART` are available (Windows, or Linux with smartmontools); otherwise omitted.
+- **Disks** — partitions, filesystems, capacity/usage, and aggregate IO counters. SMART disk health is shown when `smartctl` is available (install `smartmontools`); otherwise omitted. Reading SMART needs privilege, so an unprivileged run retries through `sudo -n` — grant it with a NOPASSWD rule for `smartctl` if you want health without running the app as root.
 - **Network** — interfaces with IPv4/IPv6/MAC addresses, up/down state, link speed, MTU and per-NIC IO totals.
 - **Sensors** — temperatures, fan speeds and battery where the OS exposes them (Linux via psutil; Windows via optional WMI). Returns gracefully when no sensors are present.
 - **GPU** — best-effort inventory: NVIDIA cards via `nvidia-smi` (name, VRAM, utilisation, temperature), other adapters via WMI (Windows) or DRM (Linux).

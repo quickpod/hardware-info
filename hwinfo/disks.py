@@ -1,47 +1,101 @@
 """Disk details: partitions, usage, filesystems, IO counters and SMART health.
 
-SMART is optional and platform-dependent: we use ``pySMART`` when it is
-importable AND a ``smartctl`` binary is present (it shells out to it).  When
-neither is available the ``smart`` key is simply omitted -- never an error.
+SMART is optional: it needs a ``smartctl`` binary, and reading it needs
+privilege.  When either is missing the ``smart`` key is simply omitted --
+never an error.
+
+``smartctl --json`` is called directly rather than going through pySMART.
+pySMART is a wrapper around the same binary, and its own device discovery
+fails on some controllers -- NVMe in particular, where it reports a drive that
+smartctl itself enumerates as "does not exist".  Parsing the documented JSON
+output has no such gap and removes a dependency.
 """
 
 from __future__ import annotations
 
+import json
 import shutil
+import subprocess
 
 from ._common import human_bytes
 
+SMARTCTL_TIMEOUT = 15
+
 
 def _smart_available():
-    """True only if pySMART imports and smartctl is on PATH (pySMART needs it)."""
-    try:
-        import pySMART  # noqa: F401
-    except Exception:
-        return False
+    """True when a smartctl binary is present."""
     return shutil.which("smartctl") is not None
 
 
+def _run_smartctl(args, timeout=SMARTCTL_TIMEOUT):
+    """Run smartctl and return parsed JSON, or None.
+
+    Reading SMART needs privilege, so an unprivileged call is retried through
+    ``sudo -n``: with a NOPASSWD rule that succeeds silently, and without one
+    it fails immediately rather than blocking on a password prompt that no
+    GUI would ever show.
+    """
+    binary = shutil.which("smartctl")
+    if not binary:
+        return None
+    for argv in ([binary] + args, ["sudo", "-n", binary] + args):
+        try:
+            proc = subprocess.run(argv, capture_output=True, text=True,
+                                  timeout=timeout, check=False)
+        except Exception:
+            continue
+        # smartctl uses its exit code as a bitfield -- bits 0-2 mean the
+        # command failed, anything above that is a drive warning and still
+        # comes with usable JSON.
+        if proc.returncode & 0b111 and not proc.stdout.strip():
+            continue
+        try:
+            data = json.loads(proc.stdout)
+        except Exception:
+            continue
+        if data.get("smartctl", {}).get("exit_status", 0) & 0b111 and \
+                "device" not in data:
+            continue
+        return data
+    return None
+
+
+def _smart_scan():
+    """Device paths smartctl can see, e.g. ``['/dev/nvme0', '/dev/sda']``."""
+    data = _run_smartctl(["--scan", "--json"])
+    if not data:
+        return []
+    return [d.get("name") for d in data.get("devices", []) if d.get("name")]
+
+
 def _smart_health():
-    """Best-effort SMART assessment per device via pySMART.
+    """Best-effort SMART assessment per device.
 
     Returns a list of ``{device, name, assessment, temperature}`` dicts, or an
-    empty list.  Wrapped so a flaky/permission-denied probe can't raise.
+    empty list.  Every probe is wrapped: a flaky or permission-denied drive
+    must not take the whole report down with it.
     """
     devices = []
-    try:
-        import pySMART
-
-        dev_list = getattr(pySMART, "DeviceList", None)
-        listing = dev_list().devices if dev_list else []
-        for dev in listing:
-            devices.append({
-                "device": getattr(dev, "name", "") or "",
-                "name": getattr(dev, "model", "") or getattr(dev, "name", "") or "",
-                "assessment": getattr(dev, "assessment", None),
-                "temperature": getattr(dev, "temperature", None),
-            })
-    except Exception:
-        return []
+    for path in _smart_scan():
+        data = _run_smartctl(["-H", "-i", "-A", "--json", path])
+        if not data:
+            continue
+        passed = data.get("smart_status", {}).get("passed")
+        assessment = None
+        if passed is True:
+            assessment = "PASS"
+        elif passed is False:
+            assessment = "FAIL"
+        temp = data.get("temperature", {}).get("current")
+        model = (data.get("model_name")
+                 or data.get("scsi_model_name")
+                 or path)
+        devices.append({
+            "device": path,
+            "name": model,
+            "assessment": assessment,
+            "temperature": temp,
+        })
     return devices
 
 

@@ -471,7 +471,7 @@ def build_app():
                          f"({dev['name']})").pack(anchor="w")
             else:
                 aura.Caption(host, (
-                    "SMART health is shown when smartctl + pySMART are "
+                    "SMART health is shown when smartctl is "
                     "available (Windows, or Linux with smartmontools).")).pack(
                     anchor="w", pady=(10, 0))
 

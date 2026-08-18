@@ -3,7 +3,7 @@
 The public API is a set of small, dependency-light collector functions that each
 return a plain, JSON-serializable ``dict``.  They lean on :mod:`psutil` (a
 permissively-licensed cross-platform library) and the standard library, and fall
-back gracefully when an optional tool (``nvidia-smi``, ``smartctl``/``pySMART``,
+back gracefully when an optional tool (``nvidia-smi``, ``smartctl``,
 ``wmi``) or a piece of hardware is absent -- returning empty/partial data rather
 than raising.  ``HWInfoError`` is the single error type callers must catch.
 
